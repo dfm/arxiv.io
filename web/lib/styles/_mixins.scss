@@ -1,0 +1,92 @@
+@mixin clearfix {
+    *zoom: 1;
+    &:before,
+    &:after {
+        display: table;
+        content: "";
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin tab-focus {
+    outline: thin dotted #333;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+@mixin center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@mixin placeholder($color: #ddd) {
+    &:-moz-placeholder {
+        color: $color;
+    }
+    &:-ms-input-placeholder {
+        color: $color;
+    }
+    &::-webkit-input-placeholder {
+        color: $color;
+    }
+}
+
+@mixin text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Border Radius
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+          border-radius: $radius;
+}
+
+@mixin border-radius-fix {
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+}
+
+// Drop shadows
+@mixin box-shadow($shadow) {
+  -webkit-box-shadow: $shadow;
+     -moz-box-shadow: $shadow;
+          box-shadow: $shadow;
+}
+
+@mixin box-shadow-2($shadow, $shadow2) {
+  -webkit-box-shadow: $shadow, $shadow2;
+     -moz-box-shadow: $shadow, $shadow2;
+          box-shadow: $shadow, $shadow2;
+}
+
+@mixin grad-vert($s: #555, $e: #333) {
+    background-color: mix($s, $e, 60%);
+    background-image: -moz-linear-gradient(top, $s, $e); // FF 3.6+
+    background-image: -ms-linear-gradient(top, $s, $e); // IE10
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from($s), to($e)); // Safari 4+, Chrome 2+
+    background-image: -webkit-linear-gradient(top, $s, $e); // Safari 5.1+, Chrome 10+
+    background-image: -o-linear-gradient(top, $s, $e); // Opera 11.10
+    background-image: linear-gradient(top, $s, $e); // The standard
+    background-repeat: repeat-x;
+    // filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",$s,$e));
+}
+
+@mixin gradientBar($one, $two) {
+    @include grad-vert($one, $two);
+    border-color: $two $two darken($two, 15%);
+    border-color: rgba(0,0,0,.1) rgba(0,0,0,.1) fadein(rgba(0,0,0,.1));
+}
+
+@mixin button-bg($s, $e) {
+    @include gradientBar($s, $e);
+    &:hover, &:active, &.active, &.disabled, &[disabled] {
+        background-color: $e;
+        *background-color: darken($e, 5%);
+    }
+}

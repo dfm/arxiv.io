@@ -1,0 +1,41 @@
+@import "normalize";
+
+// Centered page width
+$page-width: 400px;
+
+// Fonts
+$font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-size: 13px;
+$font-baseline: 18px;
+
+// Links
+$link-color:     #08c;
+$link-hover:     darken($link-color, 15%);
+
+// Colors
+$black:          #000;
+$darker-gray:    #222;
+$dark-gray:      #333;
+$gray:           #555;
+$light-gray:     #999;
+$lighter-gray:   #eee;
+$blue:           #049cdb;
+$dark-blue:      #0064cd;
+$green:          #46a546;
+$red:            #9d261d;
+$yellow:         #ffc40d;
+$orange:         #f89406;
+$pink:           #c3325f;
+$purple:         #7a43b6;
+
+// Buttons
+$btn-bg:         #fff;
+$btn-bg-hl:      #eee;
+$btn-border:     #ccc;
+$btn-bg-main:    #5bc0de;
+$btn-bg-hl-main: #2f96b4;
+
+@import "mixins";
+@import "type";
+@import "form";
+@import "button";

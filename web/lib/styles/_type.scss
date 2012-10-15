@@ -1,0 +1,59 @@
+body {
+    font-family: $font-family;
+    color: $darker-gray;
+    font-weight: normal;
+    font-size: $font-size;
+    line-height: $font-baseline;
+}
+
+a {
+    color: $link-color;
+    text-decoration: none;
+}
+
+a:hover {
+    color: $link-hover;
+}
+
+p {
+    margin: 0 0 $font-baseline / 2;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+    font-weight: bold;
+    text-rendering: optimizelegibility;
+    small {
+        font-weight: normal;
+        color: $light-gray;
+    }
+}
+
+h1 {
+    font-size: 24px;
+    line-height: 24px;
+    small {
+        font-size: 16px;
+    }
+}
+h2 {
+    font-size: 18px;
+    line-height: 21px;
+    small {
+        font-size: 14px;
+    }
+}
+
+// Warnings and errors.
+.error {
+    color: $red;
+}
+
+.warning {
+    color: $orange;
+}
+
+.success {
+    color: $green;
+}

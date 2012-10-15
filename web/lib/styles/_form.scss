@@ -1,0 +1,73 @@
+form {
+    margin: 0;
+    padding: 0;
+}
+
+label {
+    font-family: $font-family;
+    font-size: $font-size;
+    line-height: $font-baseline;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+
+input, button, select, textarea {
+    font-family: $font-family;
+    font-size: $font-size;
+    line-height: $font-baseline;
+    display: inline-block;
+    padding: 4px;
+    margin-bottom: 15px;
+    color: $gray;
+
+    background-color: #fff;
+    border: 1px solid #ccc;
+    @include border-radius(3px);
+    @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075));
+
+    // Focus state
+    &:focus {
+        border-color: rgba(82,168,236,.8);
+        outline: 0;
+        outline: thin dotted \9; /* IE6-9 */
+        @include box-shadow-2(inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6));
+    }
+}
+
+input, textarea {
+    width: 210px;
+}
+
+textarea {
+    height: auto;
+}
+
+input[disabled],
+select[disabled],
+textarea[disabled],
+input[readonly],
+select[readonly],
+textarea[readonly] {
+    cursor: not-allowed;
+    background-color: #ddd;
+    border-color: #aaa;
+}
+
+.help, label small {
+    font-size: $font-size - 2;
+    color: $light-gray;
+    font-weight: bold;
+}
+
+.help {
+    display: block;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+label small {
+    display: inline-block;
+    height: 18px;
+    padding-left: 10px;
+}
