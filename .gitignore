@@ -1,6 +1,5 @@
 .DS_Store
 *.pyc
-.sass-cache
-secret
 venv
 abstracts
+values.sh
