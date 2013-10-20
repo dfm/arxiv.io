@@ -37,6 +37,10 @@ def create_app(config_filename=None):
     app.register_blueprint(frontend)
 
     from .login import login
-    app.register_blueprint(login)
+    if app.config.get("SERVER_NAME") is not None:
+        app.register_blueprint(frontend, subdomain="www")
+        app.register_blueprint(login, subdomain="login")
+    else:
+        app.register_blueprint(login)
 
     return app

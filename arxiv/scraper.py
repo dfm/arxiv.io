@@ -12,6 +12,7 @@ __all__ = ["download"]
 
 import re
 import time
+import logging
 import requests
 import xml.etree.cElementTree as ET
 
@@ -45,12 +46,12 @@ def download(start_date, max_tries=10):
         # Asked to retry
         if code == 503:
             to = int(r.headers["retry-after"])
-            print("Got 503. Retrying after {0:d} seconds.".format(to))
+            logging.info("Got 503. Retrying after {0:d} seconds.".format(to))
 
             time.sleep(to)
             failures += 1
             if failures >= max_tries:
-                print("Failed too many times...")
+                logging.warn("Failed too many times...")
                 break
 
         elif code == 200:
@@ -68,18 +69,18 @@ def download(start_date, max_tries=10):
 
             # If there isn't one, we're all done.
             if token == "":
-                print("All done.")
+                logging.info("All done.")
                 break
 
-            print("Resumption token: {0}.".format(token))
+            logging.info("Resumption token: {0}.".format(token))
 
             # If there is a resumption token, rebuild the request.
             params = {"verb": "ListRecords", "resumptionToken": token}
 
             # Pause so as not to get banned.
             to = 20
-            print("Sleeping for {0:d} seconds so as not to get banned."
-                  .format(to))
+            logging.info("Sleeping for {0:d} seconds so as not to get banned."
+                         .format(to))
             time.sleep(to)
 
         else:
@@ -91,6 +92,7 @@ def download(start_date, max_tries=10):
 
 def parse(xml_data):
     tree = ET.fromstring(xml_data)
+    count = 0
     for i, r in enumerate(tree.findall(record_tag)):
         arxiv_id = r.find(format_tag("id")).text
         if Abstract.query.filter_by(arxiv_id=arxiv_id).first() is not None:
@@ -107,4 +109,6 @@ def parse(xml_data):
         a = Abstract(arxiv_id, title, abstract, date, license, authors,
                      categories)
         db.session.add(a)
+        count += 1
     db.session.commit()
+    logging.info("{0} new abstracts".format(count))
