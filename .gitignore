@@ -3,3 +3,6 @@
 venv
 local.py
 alembic.ini
+build
+dist
+*.egg-info
