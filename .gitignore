@@ -6,3 +6,5 @@ alembic.ini
 build
 dist
 *.egg-info
+arxivd.sh
+arxivd.log
