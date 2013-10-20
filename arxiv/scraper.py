@@ -10,22 +10,33 @@ from __future__ import (division, print_function, absolute_import,
 
 __all__ = ["download"]
 
-import os
 import re
 import time
 import requests
+import xml.etree.cElementTree as ET
 
+from .database import db
+from .models import Abstract
+
+# Download constants
 resume_re = re.compile(r".*<resumptionToken.*?>(.*?)</resumptionToken>.*")
 url = "http://export.arxiv.org/oai2"
 
+# Parse constant
+record_tag = ".//{http://www.openarchives.org/OAI/2.0/}record"
+format_tag = lambda t: ".//{http://arxiv.org/OAI/arXiv/}" + t
+date_fmt = "%a, %d %b %Y %H:%M:%S %Z"
 
-def download(basepath, max_tries=10, start_date=None):
-    params = {"verb": "ListRecords", "metadataPrefix": "arXivRaw"}
-    if start_date is not None:
-        params["from"] = start_date
 
+class NullElement:
+    text = ""
+
+
+def download(start_date, max_tries=10):
+    params = {"verb": "ListRecords", "metadataPrefix": "arXiv",
+              "from": start_date}
     failures = 0
-    count = 0
+    xml_data = []
     while True:
         # Send the request.
         r = requests.post(url, data=params)
@@ -47,11 +58,7 @@ def download(basepath, max_tries=10, start_date=None):
 
             # Write the response to a file.
             content = r.text
-            count += 1
-            fn = os.path.join(basepath, "raw-{0:08d}.xml".format(count))
-            print("Writing to: {0}".format(fn))
-            with open(fn, "w") as f:
-                f.write(content)
+            xml_data.append(content)
 
             # Look for a resumption token.
             token = resume_re.search(content)
@@ -79,12 +86,25 @@ def download(basepath, max_tries=10, start_date=None):
             # Wha happen'?
             r.raise_for_status()
 
+    return xml_data
 
-if __name__ == "__main__":
-    import sys
-    bp = sys.argv[1]
-    try:
-        os.makedirs(bp)
-    except os.error:
-        pass
-    download(bp)
+
+def parse(xml_data):
+    tree = ET.fromstring(xml_data)
+    for i, r in enumerate(tree.findall(record_tag)):
+        arxiv_id = r.find(format_tag("id")).text
+        if Abstract.query.filter_by(arxiv_id=arxiv_id).first() is not None:
+            continue
+        title = r.find(format_tag("title")).text
+        abstract = r.find(format_tag("abstract")).text
+        date = r.find(format_tag("created")).text
+        license = (r.find(format_tag("license")) or NullElement).text
+        authors = [((el.find(format_tag("forenames")) or NullElement).text,
+                    (el.find(format_tag("keyname")) or NullElement).text)
+                   for el in r.findall(format_tag("author"))]
+        categories = r.find(format_tag("categories")).text
+
+        a = Abstract(arxiv_id, title, abstract, date, license, authors,
+                     categories)
+        db.session.add(a)
+    db.session.commit()

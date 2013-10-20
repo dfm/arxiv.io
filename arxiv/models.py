@@ -122,6 +122,7 @@ class User(db.Model):
 
     id = Column(Integer, primary_key=True)
 
+    username = Column(String)
     email = Column(String)
     email_hash = Column(String)
     refresh_token = Column(String)
