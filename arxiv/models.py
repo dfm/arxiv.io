@@ -79,6 +79,23 @@ class Abstract(db.Model):
         return "Abstract(\"{0}\", ...)".format(self.arxiv_id)
 
 
+# Full text search in abstracts table.
+def abstracts_search_setup(event, schema_item, bind):
+    bind.execute("alter table abstracts add column search_vector tsvector")
+    bind.execute("""create index abstracts_search_index on abstracts
+                    using gin(search_vector)""")
+    bind.execute("""create trigger abstracts_search_update before update or
+                    insert on abstracts
+                    for each row execute procedure
+                    tsvector_update_trigger('search_vector',
+                                            'pg_catalog.english',
+                                            'abstract',
+                                            'title')""")
+
+
+Abstract.__table__.append_ddl_listener("after-create", abstracts_search_setup)
+
+
 class Author(db.Model):
 
     __tablename__ = "authors"
@@ -94,6 +111,23 @@ class Author(db.Model):
     def __repr__(self):
         return "Author(\"{0}\", \"{1}\")".format(self.firstname,
                                                  self.lastname)
+
+
+# Full text search in authors table.
+def authors_search_setup(event, schema_item, bind):
+    bind.execute("alter table authors add column search_vector tsvector")
+    bind.execute("""create index authors_search_index on authors
+                    using gin(search_vector)""")
+    bind.execute("""create trigger authors_search_update before update or
+                    insert on authors
+                    for each row execute procedure
+                    tsvector_update_trigger('search_vector',
+                                            'pg_catalog.english',
+                                            'firstname',
+                                            'lastname')""")
+
+
+Author.__table__.append_ddl_listener("after-create", authors_search_setup)
 
 
 class Category(db.Model):
