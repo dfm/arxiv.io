@@ -29,10 +29,6 @@ format_tag = lambda t: ".//{http://arxiv.org/OAI/arXiv/}" + t
 date_fmt = "%a, %d %b %Y %H:%M:%S %Z"
 
 
-class NullElement:
-    text = ""
-
-
 def download(start_date, max_tries=10):
     params = {"verb": "ListRecords", "metadataPrefix": "arXiv",
               "from": start_date}
@@ -97,14 +93,22 @@ def parse(xml_data):
         arxiv_id = r.find(format_tag("id")).text
         if Abstract.query.filter_by(arxiv_id=arxiv_id).first() is not None:
             continue
+
         title = r.find(format_tag("title")).text
         abstract = r.find(format_tag("abstract")).text
         date = r.find(format_tag("created")).text
-        license = (r.find(format_tag("license")) or NullElement).text
-        authors = [((el.find(format_tag("forenames")) or NullElement).text,
-                    (el.find(format_tag("keyname")) or NullElement).text)
-                   for el in r.findall(format_tag("author"))]
         categories = r.find(format_tag("categories")).text
+
+        license = r.find(format_tag("license"))
+        if license is not None:
+            license = license.text
+
+        authors = []
+        for author in r.findall(format_tag("author")):
+            fn = author.find(format_tag("forenames"))
+            ln = author.find(format_tag("keyname"))
+            authors.append((fn.text.strip() if fn is not None else None,
+                            ln.text.strip() if ln is not None else None))
 
         a = Abstract(arxiv_id, title, abstract, date, license, authors,
                      categories)

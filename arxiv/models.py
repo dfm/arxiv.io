@@ -56,7 +56,6 @@ class Abstract(db.Model):
         # Upsert the authors into the database.
         self.authors = []
         for fn, ln in author_list:
-            fn, ln = fn.strip(), ln.strip()
             author = Author.query.filter_by(firstname=fn,
                                             lastname=ln).first()
             if author is None:
@@ -115,6 +114,7 @@ class Author(db.Model):
 
 # Full text search in authors table.
 def authors_search_setup(event, schema_item, bind):
+    # FTS index.
     bind.execute("alter table authors add column search_vector tsvector")
     bind.execute("""create index authors_search_index on authors
                     using gin(search_vector)""")
