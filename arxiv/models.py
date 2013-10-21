@@ -100,10 +100,13 @@ class Author(db.Model):
     __tablename__ = "authors"
 
     id = Column(Integer, primary_key=True)
+    fullname = Column(String)
     firstname = Column(String)
     lastname = Column(String)
 
     def __init__(self, fn, ln):
+        self.fullname = ((fn + " " if fn is not None else "")
+                         + (ln if ln is not None else ""))
         self.firstname = fn
         self.lastname = ln
 
@@ -125,6 +128,10 @@ def authors_search_setup(event, schema_item, bind):
                                             'pg_catalog.english',
                                             'firstname',
                                             'lastname')""")
+
+    # Trigram index.
+    bind.execute("""create index authors_trigram_index on authors
+                    using gin(fullname gin_trgm_ops)""")
 
 
 Author.__table__.append_ddl_listener("after-create", authors_search_setup)
