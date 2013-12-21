@@ -15,7 +15,6 @@ from sqlalchemy import (Column, Integer, String, DateTime,
 from sqlalchemy.orm import relationship
 
 from .database import db
-from .nlp import get_bag_of_words
 from .email_utils import hash_email, encrypt_email, decrypt_email
 
 
@@ -72,7 +71,7 @@ class Abstract(db.Model):
             self.categories.append(category)
 
         # Compute the bag-of-words representation of this abstract.
-        self.wordbag = " ".join(get_bag_of_words(title + " " + abstract))
+        # self.wordbag = " ".join(get_bag_of_words(title + " " + abstract))
 
     def __repr__(self):
         return "Abstract(\"{0}\", ...)".format(self.arxiv_id)
