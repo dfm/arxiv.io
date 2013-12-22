@@ -2,10 +2,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division, print_function, absolute_import
+
+import sys
 import logging
 from datetime import date, timedelta
 
+from arxiv.models import *
 from arxiv import create_app
+from arxiv.database import db
 from arxiv.scraper import download, parse
 
 
@@ -19,6 +23,10 @@ if __name__ == "__main__":
                         help="The path to the local configuration file.")
     parser.add_argument("--log", default=None,
                         help="The path to the log file.")
+    parser.add_argument("--drop", action="store_true",
+                        help="Drop the SQL tables")
+    parser.add_argument("--create", action="store_true",
+                        help="Create the SQL tables")
     args = parser.parse_args()
 
     largs = dict(level=logging.INFO,
@@ -29,6 +37,22 @@ if __name__ == "__main__":
 
     # Initialize a flask app.
     app = create_app(args.config)
+
+    # SQL tables.
+    if args.drop:
+        logging.info("Dropping tables")
+        db.drop_all(app=app)
+        sys.exit(0)
+    if args.create:
+        logging.info("Creating tables")
+        db.create_all(app=app)
+
+        # Pre-make the category list.
+        with app.test_request_context():
+            [db.session.add(Category(c.strip()))
+             for c in open("categories.txt")]
+            db.session.commit()
+        sys.exit(0)
 
     # Set up the app in a request context.
     with app.test_request_context():

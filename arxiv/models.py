@@ -8,6 +8,7 @@ __all__ = ["Abstract", "Author", "Category", "User", "Click", "Like",
            "Dislike"]
 
 import os
+import logging
 from hashlib import sha1
 from datetime import datetime
 from sqlalchemy import (Column, Integer, String, DateTime,
@@ -36,20 +37,22 @@ class Abstract(db.Model):
     arxiv_id = Column(String)
     title = Column(String)
     abstract = Column(String)
-    date = Column(DateTime)
+    created = Column(DateTime)
+    updated = Column(DateTime)
     license = Column(String)
-    wordbag = Column(String)
     authors = relationship("Author", secondary=publications,
                            backref="abstracts")
     categories = relationship("Category", secondary=categories,
                               backref="abstracts")
 
-    def __init__(self, arxiv_id, title, abstract, date_str, license,
-                 author_list, category_str):
+    def __init__(self, arxiv_id, title, abstract, created_str, updated_str,
+                 license, author_list, category_str):
         self.arxiv_id = arxiv_id
         self.title = title
         self.abstract = abstract
-        self.date_str = datetime.strptime(date_str, "%Y-%m-%d")
+        self.created = datetime.strptime(created_str, "%Y-%m-%d")
+        if updated_str is not None:
+            self.updated = datetime.strptime(updated_str, "%Y-%m-%d")
         self.license = license
 
         # Upsert the authors into the database.
@@ -66,12 +69,10 @@ class Abstract(db.Model):
         for c in category_str.split():
             c = c.strip()
             category = Category.query.filter_by(raw=c).first()
-            if category is None:
-                category = Category(c)
-            self.categories.append(category)
-
-        # Compute the bag-of-words representation of this abstract.
-        # self.wordbag = " ".join(get_bag_of_words(title + " " + abstract))
+            if category is not None:
+                self.categories.append(category)
+            else:
+                logging.warn("Missing category: '{0}'".format(c))
 
     def __repr__(self):
         return "Abstract(\"{0}\", ...)".format(self.arxiv_id)
@@ -161,18 +162,19 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-
     username = Column(String)
     email = Column(String)
     email_hash = Column(String)
     refresh_token = Column(String)
     joined = Column(DateTime)
+    api_key = Column(String)
 
     def __init__(self, email, refresh_token, joined=None):
         self.email = encrypt_email(email)
         self.email_hash = hash_email(email)
         self.refresh_token = refresh_token
         self.joined = joined if joined is not None else datetime.now()
+        self.api_key = self.generate_token()
 
     def get_email(self):
         return decrypt_email(self.email)

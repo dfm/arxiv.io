@@ -91,12 +91,12 @@ def parse(xml_data):
     count = 0
     for i, r in enumerate(tree.findall(record_tag)):
         arxiv_id = r.find(format_tag("id")).text
-        if Abstract.query.filter_by(arxiv_id=arxiv_id).first() is not None:
-            continue
-
         title = r.find(format_tag("title")).text
         abstract = r.find(format_tag("abstract")).text
-        date = r.find(format_tag("created")).text
+        created = r.find(format_tag("created")).text
+        updated = r.find(format_tag("updated"))
+        if updated is not None:
+            updated = updated.text
         categories = r.find(format_tag("categories")).text
 
         license = r.find(format_tag("license"))
@@ -110,8 +110,8 @@ def parse(xml_data):
             authors.append((fn.text.strip() if fn is not None else None,
                             ln.text.strip() if ln is not None else None))
 
-        a = Abstract(arxiv_id, title, abstract, date, license, authors,
-                     categories)
+        a = Abstract(arxiv_id, title, abstract, created, updated, license,
+                     authors, categories)
         db.session.add(a)
         count += 1
     db.session.commit()
