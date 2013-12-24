@@ -11,4 +11,11 @@ frontend = flask.Blueprint("frontend", __name__)
 
 @frontend.route("/")
 def index():
-    return "Hello"
+    return flask.render_template("searchbox.html")
+
+
+@frontend.route("/complete")
+def complete():
+    return flask.jsonify(values=[
+        dict(value="DUDE", tokens=["DUDE"]),
+    ])

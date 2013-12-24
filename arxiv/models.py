@@ -91,6 +91,10 @@ def abstracts_search_setup(event, schema_item, bind):
                                             'abstract',
                                             'title')""")
 
+    # Completion indexes.
+    bind.execute("""CREATE INDEX abstract_arxiv_id_pre ON abstracts
+                    USING btree ( lower (arxiv_id) text_pattern_ops)""")
+
 
 Abstract.__table__.append_ddl_listener("after-create", abstracts_search_setup)
 
@@ -117,7 +121,7 @@ class Author(db.Model):
 
 # Full text search in authors table.
 def authors_search_setup(event, schema_item, bind):
-    bind.execute("""CREATE INDEX author_fisrtname_pre ON authors USING btree
+    bind.execute("""CREATE INDEX author_firstname_pre ON authors USING btree
                     ( lower (firstname) text_pattern_ops)""")
     bind.execute("""CREATE INDEX author_lastname_pre ON authors USING btree
                     ( lower (lastname) text_pattern_ops)""")
@@ -159,6 +163,15 @@ class Category(db.Model):
 
     def __repr__(self):
         return "Category(\"{0}\")".format(self.raw)
+
+
+# Full text search in abstracts table.
+def category_search_setup(event, schema_item, bind):
+    bind.execute("""CREATE INDEX category_pre ON categories
+                    USING btree ( lower (raw) text_pattern_ops)""")
+
+
+Category.__table__.append_ddl_listener("after-create", category_search_setup)
 
 
 class User(db.Model):
