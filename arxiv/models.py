@@ -117,21 +117,25 @@ class Author(db.Model):
 
 # Full text search in authors table.
 def authors_search_setup(event, schema_item, bind):
-    # FTS index.
-    bind.execute("alter table authors add column search_vector tsvector")
-    bind.execute("""create index authors_search_index on authors
-                    using gin(search_vector)""")
-    bind.execute("""create trigger authors_search_update before update or
-                    insert on authors
-                    for each row execute procedure
-                    tsvector_update_trigger('search_vector',
-                                            'pg_catalog.english',
-                                            'firstname',
-                                            'lastname')""")
+    bind.execute("""CREATE INDEX author_fisrtname_pre ON authors USING btree
+                    ( lower (firstname) text_pattern_ops)""")
+    bind.execute("""CREATE INDEX author_lastname_pre ON authors USING btree
+                    ( lower (lastname) text_pattern_ops)""")
+    # # FTS index.
+    # bind.execute("alter table authors add column search_vector tsvector")
+    # bind.execute("""create index authors_search_index on authors
+    #                 using gin(search_vector)""")
+    # bind.execute("""create trigger authors_search_update before update or
+    #                 insert on authors
+    #                 for each row execute procedure
+    #                 tsvector_update_trigger('search_vector',
+    #                                         'pg_catalog.english',
+    #                                         'firstname',
+    #                                         'lastname')""")
 
-    # Trigram index.
-    bind.execute("""create index authors_trigram_index on authors
-                    using gin(fullname gin_trgm_ops)""")
+    # # Trigram index.
+    # # bind.execute("""create index authors_trigram_index on authors
+    # #                 using gin(fullname gin_trgm_ops)""")
 
 
 Author.__table__.append_ddl_listener("after-create", authors_search_setup)

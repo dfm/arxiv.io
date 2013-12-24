@@ -95,7 +95,9 @@ def parse(xml_data):
         abstract = r.find(format_tag("abstract")).text
         created = r.find(format_tag("created")).text
         updated = r.find(format_tag("updated"))
-        if updated is not None:
+        if updated is None:
+            updated = created
+        else:
             updated = updated.text
         categories = r.find(format_tag("categories")).text
 
@@ -112,7 +114,9 @@ def parse(xml_data):
 
         a = Abstract(arxiv_id, title, abstract, created, updated, license,
                      authors, categories)
-        db.session.add(a)
-        count += 1
+        old = Abstract.query.filter_by(arxiv_id=arxiv_id).first()
+        if old is None or a.updated > old.updated:
+            db.session.add(a)
+            count += 1
     db.session.commit()
     logging.info("{0} new abstracts".format(count))
