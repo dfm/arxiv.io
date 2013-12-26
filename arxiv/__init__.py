@@ -36,11 +36,16 @@ def create_app(config_filename=None):
     from .frontend import frontend
     app.register_blueprint(frontend)
 
+    from .api import api
     from .login import login
     if app.config.get("SERVER_NAME") is not None:
         app.register_blueprint(frontend, subdomain="www")
         app.register_blueprint(login, subdomain="login")
+
+        app.register_blueprint(api, subdomain="api")
+
     else:
         app.register_blueprint(login)
+        app.register_blueprint(api, url_prefix="/api")
 
     return app

@@ -4,12 +4,12 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = []
+__all__ = ["tokenize_query"]
 
 import re
 from collections import defaultdict
 
-prefixes = ["title", "author", "category", "from", "to"]
+prefixes = ["author", "category", "from", "to"]
 synonyms = {
     "au": "author",
     "cat": "category",
