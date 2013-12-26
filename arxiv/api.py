@@ -11,7 +11,7 @@ import flask
 from sqlalchemy import func, and_
 
 from .qparser import tokenize_query
-from .models import Author, Category, Abstract
+from .models import Author, AuthorOrder, Category, Abstract
 
 api = flask.Blueprint("api", __name__)
 
@@ -19,7 +19,7 @@ api = flask.Blueprint("api", __name__)
 @api.route("/search")
 def search():
     q = flask.request.args.get("q")
-    if q is None:
+    if q is None or not len(q.strip()):
         return flask.jsonify(message="You must include a search query"), 400
 
     tokens, modifiers = tokenize_query(q.lower())
@@ -43,7 +43,8 @@ def search():
             authors += Author.query.filter(func.lower(Author.lastname)
                                            .like("{0}%".format(a))).all()
         if not len(authors):
-            return flask.jsonify(message="No authors matching query")
+            return flask.jsonify(message="No authors matching query",
+                                 authors=modifiers["author"])
 
         authors = [a.id for a in authors]
 
@@ -53,21 +54,24 @@ def search():
             Abstract.categories.any(Category.id.in_(categories)))
     if len(authors):
         filters.append(
-            Abstract.authors.any(Author.id.in_(authors)))
+            Abstract.authors.any(AuthorOrder.author_id.in_(authors)))
 
     if len(tokens):
         abstracts = Abstract.query.filter(
             and_("abstracts.search_vector @@ plainto_tsquery(:terms)",
-                 *filters)).params(terms=" ".join(tokens))
+                 *filters))
         abstracts = abstracts.order_by("ts_rank_cd(abstracts.search_vector, "
                                        "plainto_tsquery(:terms)) DESC")
+        abstracts = abstracts.params(terms=" ".join(tokens))
 
     else:
         abstracts = Abstract.query.filter(
             and_(*filters))
-        abstracts = abstracts.order_by(Abstract.updated)
+        abstracts = abstracts.order_by(Abstract.updated.desc())
 
     abstracts = abstracts.limit(100).all()
 
     return flask.jsonify(count=len(abstracts),
-                         results=[(a.arxiv_id, a.title) for a in abstracts])
+                         results=[(a.arxiv_id, a.title,
+                                   [au.author.fullname for au in a.authors])
+                                  for a in abstracts])

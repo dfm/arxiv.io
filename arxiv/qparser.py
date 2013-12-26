@@ -7,6 +7,7 @@ from __future__ import (division, print_function, absolute_import,
 __all__ = ["tokenize_query"]
 
 import re
+import string
 from collections import defaultdict
 
 prefixes = ["author", "category", "from", "to"]
@@ -35,9 +36,10 @@ def tokenize_query(q):
     for token in tokens:
         if len(token[0]):
             k = token[0].lower()
-            modifiers[synonyms.get(k, k)].append(token[1].strip())
+            modifiers[synonyms.get(k, k)].append(token[1].strip()
+                                                 .strip(string.punctuation))
         else:
-            query.append(token[2].strip())
+            query.append(token[2].strip().strip(string.punctuation))
     return query, dict(modifiers)
 
 

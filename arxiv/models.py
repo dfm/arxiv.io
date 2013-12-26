@@ -19,14 +19,23 @@ from .database import db
 from .email_utils import hash_email, encrypt_email, decrypt_email
 
 
-publications = Table("publications", db.Model.metadata,
-                     Column("author_id", Integer, ForeignKey("authors.id")),
-                     Column("abstract_id", Integer,
-                            ForeignKey("abstracts.id")))
-
 categories = Table("abstract_categories", db.Model.metadata,
                    Column("category_id", Integer, ForeignKey("categories.id")),
                    Column("abstract_id", Integer, ForeignKey("abstracts.id")))
+
+
+class AuthorOrder(db.Model):
+
+    __tablename__ = "author_order"
+
+    author_id = Column(Integer, ForeignKey("authors.id"), primary_key=True)
+    abstract_id = Column(Integer, ForeignKey("abstracts.id"), primary_key=True)
+    order = Column(Integer)
+    author = relationship("Author")
+
+    def __init__(self, author, order):
+        self.author = author
+        self.order = order
 
 
 class Abstract(db.Model):
@@ -40,8 +49,7 @@ class Abstract(db.Model):
     created = Column(DateTime)
     updated = Column(DateTime)
     license = Column(String)
-    authors = relationship("Author", secondary=publications,
-                           backref="abstracts")
+    authors = relationship(AuthorOrder, lazy="join")
     categories = relationship("Category", secondary=categories,
                               backref="abstracts")
 
@@ -57,12 +65,13 @@ class Abstract(db.Model):
 
         # Upsert the authors into the database.
         self.authors = []
-        for fn, ln in author_list:
+        for i, (fn, ln) in enumerate(author_list):
             author = Author.query.filter_by(firstname=fn,
                                             lastname=ln).first()
             if author is None:
                 author = Author(fn, ln)
-            self.authors.append(author)
+            order = AuthorOrder(author, i)
+            self.authors.append(order)
 
         # Parse and upsert the categories into the database.
         self.categories = []
@@ -125,21 +134,6 @@ def authors_search_setup(event, schema_item, bind):
                     ( lower (firstname) text_pattern_ops)""")
     bind.execute("""CREATE INDEX author_lastname_pre ON authors USING btree
                     ( lower (lastname) text_pattern_ops)""")
-    # # FTS index.
-    # bind.execute("alter table authors add column search_vector tsvector")
-    # bind.execute("""create index authors_search_index on authors
-    #                 using gin(search_vector)""")
-    # bind.execute("""create trigger authors_search_update before update or
-    #                 insert on authors
-    #                 for each row execute procedure
-    #                 tsvector_update_trigger('search_vector',
-    #                                         'pg_catalog.english',
-    #                                         'firstname',
-    #                                         'lastname')""")
-
-    # # Trigram index.
-    # # bind.execute("""create index authors_trigram_index on authors
-    # #                 using gin(fullname gin_trgm_ops)""")
 
 
 Author.__table__.append_ddl_listener("after-create", authors_search_setup)
