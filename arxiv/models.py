@@ -37,6 +37,9 @@ class AuthorOrder(db.Model):
         self.author = author
         self.order = order
 
+    def short_repr(self):
+        return self.author.short_repr()
+
 
 class Abstract(db.Model):
 
@@ -51,7 +54,7 @@ class Abstract(db.Model):
     license = Column(String)
     authors = relationship(AuthorOrder, lazy="join")
     categories = relationship("Category", secondary=categories,
-                              backref="abstracts")
+                              backref="abstracts", lazy="join")
 
     def __init__(self, arxiv_id, title, abstract, created_str, updated_str,
                  license, author_list, category_str):
@@ -85,6 +88,15 @@ class Abstract(db.Model):
 
     def __repr__(self):
         return "Abstract(\"{0}\", ...)".format(self.arxiv_id)
+
+    def short_repr(self):
+        return dict(
+            arixv_id=self.arxiv_id,
+            title=self.title,
+            updated=self.updated.strftime("%Y-%m-%d"),
+            authors=[a.short_repr() for a in sorted(self.authors,
+                                                    key=lambda a: a.order)],
+        )
 
 
 # Full text search in abstracts table.
@@ -126,6 +138,9 @@ class Author(db.Model):
     def __repr__(self):
         return "Author(\"{0}\", \"{1}\")".format(self.firstname,
                                                  self.lastname)
+
+    def short_repr(self):
+        return self.fullname
 
 
 # Full text search in authors table.

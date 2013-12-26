@@ -72,6 +72,4 @@ def search():
     abstracts = abstracts.limit(100).all()
 
     return flask.jsonify(count=len(abstracts),
-                         results=[(a.arxiv_id, a.title,
-                                   [au.author.fullname for au in a.authors])
-                                  for a in abstracts])
+                         results=[a.short_repr() for a in abstracts])
