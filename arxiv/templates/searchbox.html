@@ -21,12 +21,8 @@
 $(function () {
 
     $("input.search-box").typeahead({
-        name: "auto",
+        name: "search-box-complete",
         remote: "{{ url_for('.complete') }}?q=%QUERY",
-        filter: function (data) {
-            console.log(data);
-            return data.values;
-        }
     });
 
 });
