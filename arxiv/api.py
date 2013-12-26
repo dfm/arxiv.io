@@ -47,20 +47,27 @@ def search():
 
         authors = [a.id for a in authors]
 
-    # Do the search.
-    if not len(tokens):
-        filters = []
-        if len(categories):
-            filters.append(
-                Abstract.categories.any(Category.id.in_(categories)))
-        if len(authors):
-            filters.append(
-                Abstract.authors.any(Author.id.in_(authors)))
+    filters = []
+    if len(categories):
+        filters.append(
+            Abstract.categories.any(Category.id.in_(categories)))
+    if len(authors):
+        filters.append(
+            Abstract.authors.any(Author.id.in_(authors)))
 
+    if len(tokens):
         abstracts = Abstract.query.filter(
-            and_(*filters)).order_by(Abstract.updated).limit(100).all()
+            and_("abstracts.search_vector @@ plainto_tsquery(:terms)",
+                 *filters)).params(terms=" ".join(tokens))
+        abstracts = abstracts.order_by("ts_rank_cd(abstracts.search_vector, "
+                                       "plainto_tsquery(:terms)) DESC")
 
-        return flask.jsonify(count=len(abstracts),
-                             results=[a.arxiv_id for a in abstracts])
+    else:
+        abstracts = Abstract.query.filter(
+            and_(*filters))
+        abstracts = abstracts.order_by(Abstract.updated)
 
-    return flask.jsonify(tokens=tokens, modifiers=modifiers)
+    abstracts = abstracts.limit(100).all()
+
+    return flask.jsonify(count=len(abstracts),
+                         results=[(a.arxiv_id, a.title) for a in abstracts])
