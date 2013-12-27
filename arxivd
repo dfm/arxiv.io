@@ -19,6 +19,7 @@ if __name__ == "__main__":
     # Parse the command line arguments.
     parser = argparse.ArgumentParser(description="Scrape the arXiv metadata.")
     parser.add_argument("--since", default=None, help="The starting date.")
+    parser.add_argument("--until", default=None, help="The end date.")
     parser.add_argument("--config", default=None,
                         help="The path to the local configuration file.")
     parser.add_argument("--log", default=None,
@@ -62,8 +63,8 @@ if __name__ == "__main__":
             yesterday = date.today() - timedelta(1)
             since = yesterday.strftime("%Y-%m-%d")
 
-        logging.info("Fetching metadata since {0}".format(since))
-        l = download(since)
+        logging.info("Fetching metadata {0} -- {1}".format(since, until))
+        l = download(since, args.until)
 
         logging.info("Parsing results")
         map(parse, l)

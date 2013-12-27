@@ -71,16 +71,6 @@ class Abstract(db.Model):
             self.updated = datetime.strptime(updated_str, "%Y-%m-%d")
         self.license = license
 
-        # Upsert the authors into the database.
-        self.authors = []
-        for i, (fn, ln) in enumerate(author_list):
-            author = Author.query.filter_by(firstname=fn,
-                                            lastname=ln).first()
-            if author is None:
-                author = Author(fn, ln)
-            order = AuthorOrder(author, i)
-            self.authors.append(order)
-
         # Parse and upsert the categories into the database.
         self.categories = []
         for c in category_str.split():
@@ -90,6 +80,18 @@ class Abstract(db.Model):
                 self.categories.append(category)
             else:
                 logging.warn("Missing category: '{0}'".format(c))
+
+        self.authors = []
+        for i, (fn, ln) in enumerate(author_list):
+            # Upsert the author.
+            author = Author.query.filter_by(firstname=fn,
+                                            lastname=ln).first()
+            if author is None:
+                author = Author(fn, ln)
+
+            # Upsert the author order entry.
+            order = AuthorOrder(author, i)
+            self.authors.append(order)
 
     def __repr__(self):
         return "Abstract(\"{0}\", ...)".format(self.arxiv_id)

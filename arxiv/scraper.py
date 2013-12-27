@@ -14,6 +14,7 @@ import re
 import time
 import logging
 import requests
+from datetime import datetime
 import xml.etree.cElementTree as ET
 
 from .database import db
@@ -29,9 +30,11 @@ format_tag = lambda t: ".//{http://arxiv.org/OAI/arXiv/}" + t
 date_fmt = "%a, %d %b %Y %H:%M:%S %Z"
 
 
-def download(start_date, max_tries=10):
+def download(start_date, end_date=None, max_tries=10):
     params = {"verb": "ListRecords", "metadataPrefix": "arXiv",
               "from": start_date}
+    if end_date is not None:
+        params["until"] = end_date
     failures = 0
     xml_data = []
     while True:
@@ -101,6 +104,13 @@ def parse(xml_data):
             updated = updated.text
         categories = r.find(format_tag("categories")).text
 
+        a = Abstract.query.filter(
+            Abstract.arxiv_id == arxiv_id,
+            Abstract.updated == datetime.strptime(updated, "%Y-%m-%d")
+        ).first()
+        if a is not None:
+            continue
+
         license = r.find(format_tag("license"))
         if license is not None:
             license = license.text
@@ -112,11 +122,10 @@ def parse(xml_data):
             authors.append((fn.text.strip() if fn is not None else None,
                             ln.text.strip() if ln is not None else None))
 
+        # Find any old entry for this abstract.
         a = Abstract(arxiv_id, title, abstract, created, updated, license,
                      authors, categories)
-        old = Abstract.query.filter_by(arxiv_id=arxiv_id).first()
-        if old is None or a.updated > old.updated:
-            db.session.add(a)
-            count += 1
+        db.session.add(a)
+        count += 1
     db.session.commit()
     logging.info("{0} new abstracts".format(count))
