@@ -8,7 +8,9 @@ __all__ = ["Abstract", "Author", "Category", "User", "Click", "Like",
            "Dislike"]
 
 import os
+import bleach
 import logging
+import markdown
 from hashlib import sha1
 from datetime import datetime
 from sqlalchemy import (Column, Integer, String, DateTime,
@@ -39,6 +41,9 @@ class AuthorOrder(db.Model):
 
     def short_repr(self):
         return self.author.short_repr()
+
+    def full_repr(self):
+        return self.author.full_repr()
 
 
 class Abstract(db.Model):
@@ -91,11 +96,23 @@ class Abstract(db.Model):
 
     def short_repr(self):
         return dict(
-            arixv_id=self.arxiv_id,
-            title=self.title,
-            updated=self.updated.strftime("%Y-%m-%d"),
+            id=self.arxiv_id,
+            title=bleach.clean(self.title),
+            date=self.updated.strftime("%Y-%m-%d"),
+            categories=[c.short_repr() for c in self.categories],
             authors=[a.short_repr() for a in sorted(self.authors,
                                                     key=lambda a: a.order)],
+        )
+
+    def full_repr(self):
+        return dict(
+            id=self.arxiv_id,
+            title=bleach.clean(self.title),
+            abstract=markdown.markdown(self.abstract),
+            date=self.updated.strftime("%Y-%m-%d"),
+            categories=[c.full_repr() for c in self.categories],
+            authors=[a.full_repr() for a in sorted(self.authors,
+                                                   key=lambda a: a.order)],
         )
 
 
@@ -142,6 +159,9 @@ class Author(db.Model):
     def short_repr(self):
         return self.fullname
 
+    def full_repr(self):
+        return [n for n in [self.firstname, self.lastname] if n is not None]
+
 
 # Full text search in authors table.
 def authors_search_setup(event, schema_item, bind):
@@ -172,6 +192,12 @@ class Category(db.Model):
 
     def __repr__(self):
         return "Category(\"{0}\")".format(self.raw)
+
+    def short_repr(self):
+        return self.raw
+
+    def full_repr(self):
+        return self.raw
 
 
 # Full text search in abstracts table.

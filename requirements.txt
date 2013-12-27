@@ -3,6 +3,8 @@ redis==2.8.0
 psycopg2==2.5.1
 SQLAlchemy==0.8.2
 SimpleAES==1.0
+Markdown==2.3.1
+bleach==1.2.2
 
 Flask==0.10.1
 Flask-SQLAlchemy==0.16

@@ -6,27 +6,55 @@
     <title>{% block title %}arXiv.io{% endblock %}</title>
 
     <link rel="stylesheet" href="{{ url_for("static", filename="normalize.css") }}" type="text/css" media="screen" charset="utf-8">
+    <link rel="stylesheet" href="{{ url_for("static", filename="arxiv.css") }}" type="text/css" media="screen" charset="utf-8">
 
 </head>
 <body>
 
-<form>
-    <input type="text" class="search-box">
-</form>
+<div class="container">
+    <div class="search-bar">
+        <form>
+            <input type="text" class="search-box" placeholder="Search…" name="q" autocomplete="off" value="{{ request.args['q'] }}">
+        </form>
+    </div>
+
+    <div class="abstracts">
+        <div class="abstract">
+            <span class="title">
+                <a href="">emcee: The MCMC Hammer</a>
+            </span>
+            <span class="authors">
+                <a href="">Daniel Foreman-Mackey</a>,
+                <a href="">David W. Hogg</a>,
+                <a href="">Dustin Lang</a>,
+                <a href="">Jonathan Goodman</a>
+            </span>
+            <span class="categories">
+                <a href="">astro-ph.IM</a>
+                <a href="">physics.comp-ph</a>
+                <a href="">stat.CO</a>
+            </span>
+        </div>
+
+        <div class="abstract">
+            <span class="title">
+                <a href="">A New Approach to Detailed Structural Decomposition from the SPLASH and PHAT Surveys: Kicked-up Disk Stars in the Andromeda Galaxy?</a>
+            </span>
+            <span class="authors">
+                <a href="">Daniel Foreman-Mackey</a>,
+                <a href="">David W. Hogg</a>,
+                <a href="">Dustin Lang</a>,
+                <a href="">Jonathan Goodman</a>
+            </span>
+            <span class="categories">
+                <a href="">astro-ph.IM</a>
+                <a href="">physics.comp-ph</a>
+                <a href="">stat.CO</a>
+            </span>
+        </div>
+    </div>
+</div>
 
 <script src="{{ url_for("static", filename="jquery-1.10.2.min.js") }}"></script>
-<script src="{{ url_for("static", filename="typeahead.min.js") }}"></script>
-<script>
-
-$(function () {
-
-    $("input.search-box").typeahead({
-        name: "search-box-complete",
-        remote: "{{ url_for('.complete') }}?q=%QUERY",
-    });
-
-});
-
-</script>
 
 </body>

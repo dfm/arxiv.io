@@ -73,3 +73,12 @@ def search():
 
     return flask.jsonify(count=len(abstracts),
                          results=[a.short_repr() for a in abstracts])
+
+
+@api.route("/abs/<arxiv_id>")
+def detail_view(arxiv_id):
+    a = Abstract.query.filter(Abstract.arxiv_id == arxiv_id).first()
+    if a is None:
+        return flask.jsonify(message="No abstract found for ID '{0}'"
+                                     .format(arxiv_id)), 404
+    return flask.jsonify(result=a.full_repr())
