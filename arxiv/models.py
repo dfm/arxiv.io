@@ -32,7 +32,7 @@ class AuthorOrder(db.Model):
 
     author_id = Column(Integer, ForeignKey("authors.id"), primary_key=True)
     abstract_id = Column(Integer, ForeignKey("abstracts.id"), primary_key=True)
-    order = Column(Integer)
+    order = Column(Integer, primary_key=True)
     author = relationship("Author")
 
     def __init__(self, author, order):

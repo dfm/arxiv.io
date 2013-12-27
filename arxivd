@@ -63,7 +63,7 @@ if __name__ == "__main__":
             yesterday = date.today() - timedelta(1)
             since = yesterday.strftime("%Y-%m-%d")
 
-        logging.info("Fetching metadata {0} -- {1}".format(since, until))
+        logging.info("Fetching metadata {0} -- {1}".format(since, args.until))
         l = download(since, args.until)
 
         logging.info("Parsing results")
