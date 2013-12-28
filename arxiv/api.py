@@ -4,7 +4,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-__all__ = ["api"]
+__all__ = ["api", "run_query"]
 
 import flask
 
@@ -22,15 +22,7 @@ def pagination():
     return page, per_page
 
 
-@api.route("/search")
-def search():
-    q = flask.request.args.get("q")
-    if q is None or not len(q.strip()):
-        return flask.jsonify(message="You must include a search query"), 400
-
-    # Pagination.
-    page, per_page = pagination()
-
+def run_query(q, page, per_page):
     tokens, modifiers = tokenize_query(q.lower())
     filters = []
 
@@ -42,7 +34,8 @@ def search():
             categories += Category.query.filter(func.lower(Category.raw)
                                                 .like("{0}%".format(c))).all()
         if not len(categories):
-            return flask.jsonify(message="No categories matching query")
+            flask.flash("No categories matching query")
+            return []
         filters.append(Abstract.categories.any(
             Category.id.in_([c.id for c in categories])))
 
@@ -52,8 +45,8 @@ def search():
             authors = Author.query.filter(func.lower(Author.lastname)
                                           .like("{0}%".format(a))).all()
             if not len(authors):
-                return flask.jsonify(message="No match for author '{0}'"
-                                             .format(a))
+                flask.flash("No matches found for author '{0}'".format(a))
+                return []
             filters.append(Abstract.authors.any(
                 AuthorOrder.author_id.in_([au.id for au in authors])))
 
@@ -70,7 +63,19 @@ def search():
         abstracts = Abstract.query.filter(and_(*filters))
         abstracts = abstracts.order_by(Abstract.updated.desc())
 
-    abstracts = abstracts.offset((page-1)*per_page).limit(per_page).all()
+    # Apply the pagination.
+    abstracts = abstracts.offset((page-1)*per_page).limit(per_page)
+    return abstracts.all()
+
+
+@api.route("/search")
+def search():
+    q = flask.request.args.get("q")
+    if q is None or not len(q.strip()):
+        return flask.jsonify(message="You must include a search query"), 400
+    page, per_page = pagination()
+
+    abstracts = run_query(q, page, per_page)
 
     return flask.jsonify(count=len(abstracts),
                          page=page, per_page=per_page,

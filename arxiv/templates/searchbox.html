@@ -19,42 +19,40 @@
     </div>
 
     <div class="abstracts">
+        {% for abstract in abstracts %}
         <div class="abstract">
             <span class="title">
-                <a href="">emcee: The MCMC Hammer</a>
+                <a href="">{{ abstract.title }}</a>
             </span>
             <span class="authors">
-                <a href="">Daniel Foreman-Mackey</a>,
-                <a href="">David W. Hogg</a>,
-                <a href="">Dustin Lang</a>,
-                <a href="">Jonathan Goodman</a>
+                {% for au in abstract.authors[:-1] %}
+                <a href="">{{ au.author.fullname }}</a>,
+                {% endfor %}
+                <a href="">{{ abstract.authors[-1].author.fullname }}</a>
             </span>
             <span class="categories">
-                <a href="">astro-ph.IM</a>
-                <a href="">physics.comp-ph</a>
-                <a href="">stat.CO</a>
+                {% for cat in abstract.categories %}
+                <a href="">{{ cat.raw }}</a>
+                {% endfor %}
             </span>
         </div>
-
-        <div class="abstract">
-            <span class="title">
-                <a href="">A New Approach to Detailed Structural Decomposition from the SPLASH and PHAT Surveys: Kicked-up Disk Stars in the Andromeda Galaxy?</a>
-            </span>
-            <span class="authors">
-                <a href="">Daniel Foreman-Mackey</a>,
-                <a href="">David W. Hogg</a>,
-                <a href="">Dustin Lang</a>,
-                <a href="">Jonathan Goodman</a>
-            </span>
-            <span class="categories">
-                <a href="">astro-ph.IM</a>
-                <a href="">physics.comp-ph</a>
-                <a href="">stat.CO</a>
-            </span>
-        </div>
+        {% endfor %}
     </div>
 </div>
 
 <script src="{{ url_for("static", filename="jquery-1.10.2.min.js") }}"></script>
+<script src="{{ url_for("static", filename="underscore-min.js") }}"></script>
+
+<script>
+
+$(function () {
+    $.ajax({
+        dataType: "json",
+        url: "{{ url_for('api.search') }}"+location.search,
+        success: function(data) { console.log(data); }
+    });
+});
+
+</script>
 
 </body>
