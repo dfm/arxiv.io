@@ -15,9 +15,9 @@ frontend = flask.Blueprint("frontend", __name__)
 def index():
     q = flask.request.args.get("q")
     if q is not None and len(q.strip()):
-        return flask.render_template("searchbox.html",
+        return flask.render_template("search.html",
                                      abstracts=run_query(q, 1, 50))
-    return flask.render_template("searchbox.html")
+    return flask.render_template("index.html")
 
 
 @frontend.route("/abs/<arxiv_id>")
@@ -26,4 +26,4 @@ def abstract_view(arxiv_id):
     abstract = abstract.order_by(Abstract.updated.desc()).first()
     if abstract is None:
         return flask.abort(404)
-    return flask.render_template("searchbox.html", abstracts=[abstract])
+    return flask.render_template("abstract.html", abstract=abstract)

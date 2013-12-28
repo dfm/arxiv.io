@@ -10,7 +10,7 @@ import re
 import string
 from collections import defaultdict
 
-prefixes = ["author", "category", "from", "to"]
+prefixes = ["author", "category", "from", "to", "on", "in"]
 synonyms = {
     "au": "author",
     "cat": "category",

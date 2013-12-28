@@ -117,6 +117,10 @@ class Abstract(db.Model):
                                                    key=lambda a: a.order)],
         )
 
+    @property
+    def html_abstract(self):
+        return markdown.markdown(self.abstract)
+
 
 # Full text search in abstracts table.
 def abstracts_search_setup(event, schema_item, bind):

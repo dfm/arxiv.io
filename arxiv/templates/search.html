@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}arXiv.io — Search{% endblock %}
+
+{% block contents %}
+    <div class="abstracts">
+        {% for abstract in abstracts %}
+        <div class="abstract">
+            <span class="title">
+                <a href="{{ url_for('.abstract_view', arxiv_id=abstract.arxiv_id) }}">{{ abstract.title }}</a>
+            </span>
+            <span class="authors">
+                {% for au in abstract.authors[:-1] %}
+                <a href="{{ url_for('.index') }}?q=au:'{{ au.author.fullname }}'">{{ au.author.fullname }}</a>,
+                {% endfor %}
+                <a href="{{ url_for('.index') }}?q=au:'{{ abstract.authors[-1].author.fullname }}'">{{ abstract.authors[-1].author.fullname }}</a>
+            </span>
+            <span class="categories">
+                {% for cat in abstract.categories %}
+                <a href="{{ url_for('.index') }}?q=cat:{{ cat.raw }}">{{ cat.raw }}</a>
+                {% endfor %}
+                <span class="date">
+                    <a href="{{ url_for('.index') }}?q=on:{{ abstract.updated.strftime('%Y-%m-%d') }}">{{ abstract.updated.strftime('%Y-%m-%d') }}</a>
+                </span>
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}
