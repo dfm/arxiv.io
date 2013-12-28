@@ -13,7 +13,7 @@
 
 <div class="container">
     <div class="search-bar">
-        <form>
+        <form action="{{ url_for('.index') }}">
             <input type="text" class="search-box" placeholder="Search…" name="q" autocomplete="off" value="{{ request.args['q'] }}">
         </form>
     </div>
@@ -22,18 +22,21 @@
         {% for abstract in abstracts %}
         <div class="abstract">
             <span class="title">
-                <a href="">{{ abstract.title }}</a>
+                <a href="{{ url_for('.abstract_view', arxiv_id=abstract.arxiv_id) }}">{{ abstract.title }}</a>
             </span>
             <span class="authors">
                 {% for au in abstract.authors[:-1] %}
-                <a href="">{{ au.author.fullname }}</a>,
+                <a href="?q=au:'{{ au.author.fullname }}'">{{ au.author.fullname }}</a>,
                 {% endfor %}
-                <a href="">{{ abstract.authors[-1].author.fullname }}</a>
+                <a href="?q=au:'{{ abstract.authors[-1].author.fullname }}'">{{ abstract.authors[-1].author.fullname }}</a>
             </span>
             <span class="categories">
                 {% for cat in abstract.categories %}
-                <a href="">{{ cat.raw }}</a>
+                <a href="?q=cat:{{ cat.raw }}">{{ cat.raw }}</a>
                 {% endfor %}
+                <span class="date">
+                    <a href="">{{ abstract.updated.strftime('%Y-%m-%d') }}</a>
+                </span>
             </span>
         </div>
         {% endfor %}
@@ -41,7 +44,6 @@
 </div>
 
 <script src="{{ url_for("static", filename="jquery-1.10.2.min.js") }}"></script>
-<script src="{{ url_for("static", filename="underscore-min.js") }}"></script>
 
 <script>
 
