@@ -8,6 +8,7 @@ __all__ = ["api", "run_query"]
 
 import flask
 
+import string
 from sqlalchemy import func, and_
 
 from .qparser import tokenize_query
@@ -20,6 +21,26 @@ def pagination():
     page = max(1, int(flask.request.args.get("page", 1)))
     per_page = min(max(1, int(flask.request.args.get("per_page", 50))), 500)
     return page, per_page
+
+
+def author_search(nm):
+    # Reorder in the case of a comma.
+    nm = " ".join(nm.lower().split(",")[::-1])
+
+    # Tokenize the name.
+    tokens = [t.strip(string.punctuation) for t in nm.split()]
+    if len(tokens) == 1:
+        tokens = [""] + tokens
+
+    # Re-order to make sure that the initials are at the front.
+    search = "% ".join(tokens)
+    sim = " ".join(tokens)
+
+    # Do the search using the trigram index and sort by trigam similarity.
+    q = Author.query.filter(func.lower(Author.fullname).like(search))
+    q = q.order_by(func.similarity(func.lower(Author.fullname), sim))
+
+    return q.all()
 
 
 def run_query(q, page, per_page):
@@ -42,8 +63,7 @@ def run_query(q, page, per_page):
     # Extract the authors.
     if "author" in modifiers:
         for a in modifiers["author"]:
-            authors = Author.query.filter(func.lower(Author.lastname)
-                                          .like("{0}%".format(a))).all()
+            authors = author_search(a)
             if not len(authors):
                 flask.flash("No matches found for author '{0}'".format(a))
                 return []

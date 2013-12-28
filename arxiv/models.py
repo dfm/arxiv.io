@@ -171,6 +171,8 @@ def authors_search_setup(event, schema_item, bind):
                     ( lower (firstname) text_pattern_ops)""")
     bind.execute("""CREATE INDEX author_lastname_pre ON authors USING btree
                     ( lower (lastname) text_pattern_ops)""")
+    bind.execute("""CREATE INDEX author_trigram_index ON authors
+                    USING gin(lower(fullname) gin_trgm_ops)""")
 
 
 Author.__table__.append_ddl_listener("after-create", authors_search_setup)
